@@ -2,6 +2,7 @@ import { Link } from "react-router-dom";
 import Navbar from "../components/Navbar";
 import Footer from "../components/Footer";
 import CircuitBackground from "../components/CircuitBackground";
+import Logo from "../components/ui/Logo";
 
 const TEAM = [
     {
@@ -40,6 +41,9 @@ export default function AboutPage() {
                 <div style={{ maxWidth: 860, margin: "0 auto", padding: "80px 24px 60px", textAlign: "center" }}>
                     <div style={{ fontSize: 11, fontWeight: 700, color: "var(--blue)", letterSpacing: "0.2em", textTransform: "uppercase", marginBottom: 16 }}>
                         About DFT Labs
+                    </div>
+                    <div style={{ display: "flex", justifyContent: "center", marginBottom: 32 }}>
+                        <Logo height={80} />
                     </div>
                     <h1 style={{ fontSize: "clamp(32px, 5vw, 60px)", fontWeight: 800, color: "var(--text)", fontFamily: "var(--font-display)", lineHeight: 1.1, marginBottom: 24 }}>
                         We Build AI That{" "}

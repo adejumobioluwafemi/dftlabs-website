@@ -1,6 +1,7 @@
 import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { NAV_LINKS } from "../data/content";
+import Logo from "./ui/Logo";
 
 
 const SwanLogo = ({ size = 38, color = "#4A8FD4" }) => (
@@ -62,13 +63,9 @@ export default function Navbar() {
                 {/* Logo */}
                 <div
                     onClick={() => window.scrollTo({ top: 0, behavior: "smooth" })}
-                    style={{ display: "flex", alignItems: "center", gap: 12, cursor: "pointer" }}
+                    style={{ cursor: "pointer", display: "flex", alignItems: "center" }}
                 >
-                    <SwanLogo />
-                    <div>
-                        <div style={{ fontSize: 18, fontWeight: 800, color: "var(--blue)", fontFamily: "var(--font-display)", lineHeight: 1.1, letterSpacing: "0.02em" }}>DEEPFLY</div>
-                        <div style={{ fontSize: 9.5, fontWeight: 500, color: "var(--text-faint)", letterSpacing: "0.25em" }}>TECH LABS</div>
-                    </div>
+                    <Logo height={44} />
                 </div>
 
                 {/* Desktop links */}

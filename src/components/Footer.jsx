@@ -1,3 +1,5 @@
+import Logo from "./ui/Logo";
+
 const SwanLogo = ({ size = 32, color = "#4A8FD4" }) => (
     <svg width={size} height={size * 0.75} viewBox="0 0 120 90" fill="none">
         <path d="M85 15 C75 5 60 8 45 11 C32 14 38 35 40 35 C42 48 55 52 55 52" stroke={color} strokeWidth="2.5" strokeLinecap="round" fill="none" />
@@ -31,12 +33,8 @@ export default function Footer() {
                     gap: 40, marginBottom: 48,
                 }} className="footer-grid">
                     <div>
-                        <div style={{ display: "flex", alignItems: "center", gap: 10, marginBottom: 20 }}>
-                            <SwanLogo />
-                            <div>
-                                <div style={{ fontSize: 15, fontWeight: 800, color: "var(--blue)", fontFamily: "var(--font-display)" }}>DEEPFLY</div>
-                                <div style={{ fontSize: 8.5, color: "var(--text-faint)", letterSpacing: "0.2em" }}>TECH LABS</div>
-                            </div>
+                        <div style={{ marginBottom: 20 }}>
+                            <Logo height={40} />
                         </div>
                         <p style={{ fontSize: 13.5, color: "var(--text-faint)", lineHeight: 1.8, maxWidth: 280 }}>
                             Building intelligent systems that transform Healthcare, Agriculture, Banking, and Education.
