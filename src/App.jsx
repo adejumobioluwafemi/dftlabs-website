@@ -7,6 +7,9 @@ import BlogPage from "./pages/BlogPage";
 import BlogPost from "./pages/BlogPost";
 import JobsPage from "./pages/JobsPage";
 import NotFound from "./pages/NotFound";
+import AboutPage from "./pages/AboutPage";
+import EventsPage from "./pages/EventsPage";
+import EventDetail from "./pages/EventDetail";
 
 // Admin
 import AdminLayout from "./pages/admin/AdminLayout";
@@ -66,6 +69,9 @@ export default function App() {
           <Route path="/blog" element={<BlogPage />} />
           <Route path="/blog/:slug" element={<BlogPost />} />
           <Route path="/jobs" element={<JobsPage />} />
+          <Route path="/about" element={<AboutPage />} />
+          <Route path="/events" element={<EventsPage />} />
+          <Route path="/events/:id" element={<EventDetail />} />
 
           {/* Admin routes — protected inside AdminLayout */}
           <Route path="/admin" element={<AdminLayout />}>

@@ -98,6 +98,16 @@ export default function BlogPost() {
 
                 {/* Content */}
                 <article style={{ maxWidth: 800, margin: "0 auto", padding: "0 24px 80px" }}>
+
+                    {post.image && (
+                        <div style={{ marginBottom: 36, borderRadius: 16, overflow: "hidden" }}>
+                            <img
+                                src={post.image}
+                                alt={post.title}
+                                style={{ width: "100%", height: 380, objectFit: "cover", display: "block" }}
+                            />
+                        </div>
+                    )}
                     <div style={{ fontSize: 18, color: "var(--text-muted)", lineHeight: 1.9, marginBottom: 32, fontStyle: "italic", borderLeft: "3px solid var(--blue)", paddingLeft: 20 }}>
                         {post.excerpt}
                     </div>

@@ -1,5 +1,7 @@
 import { useState, useEffect } from "react";
+import { useNavigate } from "react-router-dom";
 import { NAV_LINKS } from "../data/content";
+
 
 const SwanLogo = ({ size = 38, color = "#4A8FD4" }) => (
     <svg width={size} height={size * 0.75} viewBox="0 0 120 90" fill="none">
@@ -17,6 +19,7 @@ const SwanLogo = ({ size = 38, color = "#4A8FD4" }) => (
 export default function Navbar() {
     const [scrolled, setScrolled] = useState(false);
     const [mobileOpen, setMobileOpen] = useState(false);
+    const navigate = useNavigate();
 
     useEffect(() => {
         const onScroll = () => setScrolled(window.scrollY > 50);
@@ -24,9 +27,14 @@ export default function Navbar() {
         return () => window.removeEventListener("scroll", onScroll);
     }, []);
 
-    const scrollTo = (id) => {
-        document.getElementById(id.toLowerCase())
-            ?.scrollIntoView({ behavior: "smooth" });
+    const scrollTo = (label) => {
+        const pageRoutes = { About: "/about", Blog: "/blog", Events: "/events", Jobs: "/jobs" };
+        if (pageRoutes[label]) {
+            navigate(pageRoutes[label]);
+        } else {
+            const el = document.getElementById(label.toLowerCase());
+            if (el) el.scrollIntoView({ behavior: "smooth" });
+        }
         setMobileOpen(false);
     };
 
