@@ -272,7 +272,7 @@ export default function EventDetail() {
                         <div style={{ position: "sticky", top: 90 }}>
                             <div style={{
                                 background: "var(--bg-card)", border: "1px solid var(--border)",
-                                borderRadius: 20, padding: 28,
+                                borderRadius: 20, padding: 28, width: '420px', maxWidth: '500px', margin: '0 auto',
                             }}>
                                 {registered ? (
                                     <div style={{ textAlign: "center", padding: "20px 0" }}>
