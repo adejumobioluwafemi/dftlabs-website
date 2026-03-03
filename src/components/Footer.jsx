@@ -34,7 +34,7 @@ export default function Footer() {
                 }} className="footer-grid">
                     <div>
                         <div style={{ marginBottom: 20 }}>
-                            <Logo height={40} />
+                            <Logo height={82} />
                         </div>
                         <p style={{ fontSize: 13.5, color: "var(--text-faint)", lineHeight: 1.8, maxWidth: 280 }}>
                             Building intelligent systems that transform Healthcare, Agriculture, Banking, and Education.

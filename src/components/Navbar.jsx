@@ -65,7 +65,7 @@ export default function Navbar() {
                     onClick={() => window.scrollTo({ top: 0, behavior: "smooth" })}
                     style={{ cursor: "pointer", display: "flex", alignItems: "center" }}
                 >
-                    <Logo height={44} />
+                    <Logo height={85} />
                 </div>
 
                 {/* Desktop links */}

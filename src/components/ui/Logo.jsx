@@ -1,5 +1,5 @@
 
-export default function Logo({ height = 48, className = "" }) {
+export default function Logo({ height = 100, className = "" }) {
     return (
         <img
             src="/logo.svg"
