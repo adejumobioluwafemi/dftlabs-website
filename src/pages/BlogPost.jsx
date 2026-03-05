@@ -1,5 +1,6 @@
-import { useParams, Link, useNavigate } from "react-router-dom";
-import { ALL_BLOG_POSTS } from "../data/content";
+import { useState, useEffect } from "react";
+import { useParams, Link } from "react-router-dom";
+import { fetchPostBySlug, fetchPublishedPosts } from "../api/blog";
 import Navbar from "../components/Navbar";
 import Footer from "../components/Footer";
 import Tag from "../components/ui/Tag";
@@ -12,8 +13,8 @@ const TAG_COLORS = {
     "Technical": "#8b5cf6",
 };
 
-// Very simple markdown-like renderer for our content
 function renderContent(content) {
+    if (!content) return null;
     return content.split("\n\n").map((block, i) => {
         if (block.startsWith("## ")) {
             return (
@@ -22,16 +23,32 @@ function renderContent(content) {
                 </h2>
             );
         }
-        if (block.startsWith("1. ") || block.startsWith("2. ")) {
-            const items = block.split("\n");
+        if (block.startsWith("### ")) {
             return (
-                <ol key={i} style={{ paddingLeft: 24, margin: "16px 0" }}>
+                <h3 key={i} style={{ fontSize: 18, fontWeight: 700, color: "var(--text)", fontFamily: "var(--font-display)", margin: "28px 0 12px" }}>
+                    {block.replace("### ", "")}
+                </h3>
+            );
+        }
+        if (block.startsWith("1. ") || block.startsWith("2. ") || block.startsWith("- ")) {
+            const items = block.split("\n").filter(Boolean);
+            const isOrdered = /^\d+\./.test(items[0]);
+            const Tag = isOrdered ? "ol" : "ul";
+            return (
+                <Tag key={i} style={{ paddingLeft: 24, margin: "16px 0" }}>
                     {items.map((item, j) => (
                         <li key={j} style={{ fontSize: 16, color: "var(--text-muted)", lineHeight: 1.9, marginBottom: 8 }}>
-                            {item.replace(/^\d+\.\s/, "")}
+                            {item.replace(/^(\d+\.|-)?\s*/, "")}
                         </li>
                     ))}
-                </ol>
+                </Tag>
+            );
+        }
+        if (block.startsWith("**") && block.endsWith("**")) {
+            return (
+                <p key={i} style={{ fontSize: 16, color: "var(--text)", fontWeight: 700, lineHeight: 1.9, marginBottom: 20 }}>
+                    {block.replace(/\*\*/g, "")}
+                </p>
             );
         }
         return (
@@ -42,13 +59,60 @@ function renderContent(content) {
     });
 }
 
+function LoadingSkeleton() {
+    return (
+        <div style={{ animation: "pulse 1.5s ease-in-out infinite" }}>
+            <div style={{ height: 16, width: 100, background: "var(--border)", borderRadius: 6, margin: "0 auto 32px" }} />
+            <div style={{ height: 48, background: "var(--border)", borderRadius: 8, marginBottom: 12 }} />
+            <div style={{ height: 48, width: "75%", background: "var(--border)", borderRadius: 8, margin: "0 auto 24px" }} />
+            <div style={{ height: 14, width: 200, background: "var(--border)", borderRadius: 6, margin: "0 auto 48px" }} />
+            <div style={{ height: 380, background: "var(--border)", borderRadius: 16, marginBottom: 36 }} />
+            {[1, 2, 3, 4, 5].map(i => (
+                <div key={i} style={{ height: 16, background: "var(--border)", borderRadius: 6, marginBottom: 10, width: i % 3 === 0 ? "85%" : "100%" }} />
+            ))}
+        </div>
+    );
+}
+
 export default function BlogPost() {
     const { slug } = useParams();
-    // eslint-disable-next-line no-unused-vars
-    const navigate = useNavigate();
-    const post = ALL_BLOG_POSTS.find(p => p.slug === slug);
+    const [post, setPost] = useState(null);
+    const [adjacent, setAdjacent] = useState({ prev: null, next: null });
+    const [loading, setLoading] = useState(true);
+    const [notFound, setNotFound] = useState(false);
 
-    if (!post) {
+    useEffect(() => {
+        let cancelled = false;
+        setLoading(true);
+        setNotFound(false);
+
+        async function load() {
+            try {
+                const [data, allPosts] = await Promise.all([
+                    fetchPostBySlug(slug),
+                    fetchPublishedPosts({ limit: 50 }),
+                ]);
+                if (cancelled) return;
+                if (!data) { setNotFound(true); setLoading(false); return; }
+                setPost(data);
+
+                const idx = allPosts.findIndex(p => p.slug === slug);
+                setAdjacent({
+                    prev: idx < allPosts.length - 1 ? allPosts[idx + 1] : null,
+                    next: idx > 0 ? allPosts[idx - 1] : null,
+                });
+            } catch {
+                if (!cancelled) setNotFound(true);
+            } finally {
+                if (!cancelled) setLoading(false);
+            }
+        }
+
+        load();
+        return () => { cancelled = true; };
+    }, [slug]);
+
+    if (notFound) {
         return (
             <>
                 <Navbar />
@@ -62,97 +126,103 @@ export default function BlogPost() {
         );
     }
 
-    const currentIndex = ALL_BLOG_POSTS.findIndex(p => p.slug === slug);
-    const prev = ALL_BLOG_POSTS[currentIndex + 1];
-    const next = ALL_BLOG_POSTS[currentIndex - 1];
-
     return (
         <>
+            <style>{`
+                @keyframes pulse {
+                    0%, 100% { opacity: 1; }
+                    50% { opacity: 0.5; }
+                }
+            `}</style>
             <CircuitBackground />
             <Navbar />
             <div style={{ position: "relative", zIndex: 1 }}>
-                {/* Hero */}
-                <div style={{
-                    maxWidth: 800, margin: "0 auto",
-                    padding: "60px 24px 0",
-                    textAlign: "center",
-                }}>
+                <div style={{ maxWidth: 800, margin: "0 auto", padding: "60px 24px 0", textAlign: "center" }}>
                     <Link to="/blog" style={{ color: "var(--blue)", fontSize: 13, fontWeight: 600, textDecoration: "none", display: "inline-flex", alignItems: "center", gap: 6, marginBottom: 32 }}>
                         ← Back to Blog
                     </Link>
-                    <div style={{ display: "flex", gap: 12, justifyContent: "center", marginBottom: 24 }}>
-                        <Tag label={post.tag} color={TAG_COLORS[post.tag] || "var(--blue)"} />
-                    </div>
-                    <h1 style={{ fontSize: "clamp(26px, 4vw, 46px)", fontWeight: 800, color: "var(--text)", fontFamily: "var(--font-display)", lineHeight: 1.2, marginBottom: 20 }}>
-                        {post.title}
-                    </h1>
-                    <div style={{ fontSize: 14, color: "var(--text-faint)", marginBottom: 48 }}>
-                        {post.date} · {post.read} read · By {post.author}
-                    </div>
-                </div>
 
-                {/* Divider */}
-                <div style={{ maxWidth: 800, margin: "0 auto 48px", padding: "0 24px" }}>
-                    <div style={{ height: 1, background: "linear-gradient(90deg, transparent, var(--blue), transparent)" }} />
-                </div>
-
-                {/* Content */}
-                <article style={{ maxWidth: 800, margin: "0 auto", padding: "0 24px 80px" }}>
-
-                    {post.image && (
-                        <div style={{ marginBottom: 36, borderRadius: 16, overflow: "hidden" }}>
-                            <img
-                                src={post.image}
-                                alt={post.title}
-                                style={{ width: "100%", height: 380, objectFit: "cover", display: "block" }}
-                            />
-                        </div>
+                    {loading ? (
+                        <LoadingSkeleton />
+                    ) : (
+                        <>
+                            <div style={{ display: "flex", gap: 12, justifyContent: "center", marginBottom: 24 }}>
+                                <Tag label={post.tag} color={TAG_COLORS[post.tag] || "var(--blue)"} />
+                            </div>
+                            <h1 style={{ fontSize: "clamp(26px, 4vw, 46px)", fontWeight: 800, color: "var(--text)", fontFamily: "var(--font-display)", lineHeight: 1.2, marginBottom: 20 }}>
+                                {post.title}
+                            </h1>
+                            <div style={{ fontSize: 14, color: "var(--text-faint)", marginBottom: 48 }}>
+                                {post.date} · {post.read} read · By {post.author}
+                            </div>
+                        </>
                     )}
-                    <div style={{ fontSize: 18, color: "var(--text-muted)", lineHeight: 1.9, marginBottom: 32, fontStyle: "italic", borderLeft: "3px solid var(--blue)", paddingLeft: 20 }}>
-                        {post.excerpt}
-                    </div>
-                    {renderContent(post.content)}
+                </div>
 
-                    {/* Share / Tags */}
-                    <div style={{ marginTop: 56, paddingTop: 32, borderTop: "1px solid var(--border)", display: "flex", justifyContent: "space-between", alignItems: "center", flexWrap: "wrap", gap: 16 }}>
-                        <Tag label={post.tag} color={TAG_COLORS[post.tag] || "var(--blue)"} />
-                        <div style={{ display: "flex", gap: 10 }}>
-                            {["Share on X", "Copy Link"].map(action => (
-                                <button key={action} style={{
-                                    background: "var(--blue-dim)", border: "1px solid var(--border-blue)",
-                                    color: "var(--blue)", borderRadius: 8, padding: "8px 16px",
-                                    fontSize: 12, fontWeight: 600, cursor: "pointer", fontFamily: "inherit",
-                                }}>
-                                    {action}
-                                </button>
-                            ))}
+                {!loading && post && (
+                    <>
+                        <div style={{ maxWidth: 800, margin: "0 auto 48px", padding: "0 24px" }}>
+                            <div style={{ height: 1, background: "linear-gradient(90deg, transparent, var(--blue), transparent)" }} />
                         </div>
-                    </div>
 
-                    {/* Prev / Next */}
-                    <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 16, marginTop: 48 }}>
-                        {prev ? (
-                            <Link to={`/blog/${prev.slug}`} style={{ textDecoration: "none" }}>
-                                <div style={{ background: "var(--bg-card)", border: "1px solid var(--border)", borderRadius: 12, padding: 20, transition: "all 0.2s" }}
-                                    onMouseEnter={e => e.currentTarget.style.borderColor = "rgba(74,143,212,0.4)"}
-                                    onMouseLeave={e => e.currentTarget.style.borderColor = "var(--border)"}>
-                                    <div style={{ fontSize: 11, color: "var(--text-faint)", marginBottom: 8, letterSpacing: "0.06em" }}>← PREVIOUS</div>
-                                    <div style={{ fontSize: 14, color: "var(--text)", fontWeight: 600, lineHeight: 1.4 }}>{prev.title}</div>
+                        <article style={{ maxWidth: 800, margin: "0 auto", padding: "0 24px 80px" }}>
+                            {post.image && (
+                                <div style={{ marginBottom: 36, borderRadius: 16, overflow: "hidden" }}>
+                                    <img src={post.image} alt={post.title} style={{ width: "100%", height: 380, objectFit: "cover", display: "block" }} />
                                 </div>
-                            </Link>
-                        ) : <div />}
-                        {next ? (
-                            <Link to={`/blog/${next.slug}`} style={{ textDecoration: "none" }}>
-                                <div style={{ background: "var(--bg-card)", border: "1px solid var(--border)", borderRadius: 12, padding: 20, textAlign: "right", transition: "all 0.2s" }}
-                                    onMouseEnter={e => e.currentTarget.style.borderColor = "rgba(74,143,212,0.4)"}
-                                    onMouseLeave={e => e.currentTarget.style.borderColor = "var(--border)"}>
-                                    <div style={{ fontSize: 11, color: "var(--text-faint)", marginBottom: 8, letterSpacing: "0.06em" }}>NEXT →</div>
-                                    <div style={{ fontSize: 14, color: "var(--text)", fontWeight: 600, lineHeight: 1.4 }}>{next.title}</div>
+                            )}
+
+                            <div style={{ fontSize: 18, color: "var(--text-muted)", lineHeight: 1.9, marginBottom: 32, fontStyle: "italic", borderLeft: "3px solid var(--blue)", paddingLeft: 20 }}>
+                                {post.excerpt}
+                            </div>
+
+                            {renderContent(post.content)}
+
+                            {/* Share / Tags */}
+                            <div style={{ marginTop: 56, paddingTop: 32, borderTop: "1px solid var(--border)", display: "flex", justifyContent: "space-between", alignItems: "center", flexWrap: "wrap", gap: 16 }}>
+                                <Tag label={post.tag} color={TAG_COLORS[post.tag] || "var(--blue)"} />
+                                <div style={{ display: "flex", gap: 10 }}>
+                                    <button
+                                        onClick={() => window.open(`https://twitter.com/intent/tweet?text=${encodeURIComponent(post.title)}&url=${encodeURIComponent(window.location.href)}`, "_blank")}
+                                        style={{ background: "var(--blue-dim)", border: "1px solid var(--border-blue)", color: "var(--blue)", borderRadius: 8, padding: "8px 16px", fontSize: 12, fontWeight: 600, cursor: "pointer", fontFamily: "inherit" }}
+                                    >
+                                        Share on X
+                                    </button>
+                                    <button
+                                        onClick={() => navigator.clipboard?.writeText(window.location.href)}
+                                        style={{ background: "var(--blue-dim)", border: "1px solid var(--border-blue)", color: "var(--blue)", borderRadius: 8, padding: "8px 16px", fontSize: 12, fontWeight: 600, cursor: "pointer", fontFamily: "inherit" }}
+                                    >
+                                        Copy Link
+                                    </button>
                                 </div>
-                            </Link>
-                        ) : <div />}
-                    </div>
-                </article>
+                            </div>
+
+                            {/* Prev / Next */}
+                            <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 16, marginTop: 48 }}>
+                                {adjacent.prev ? (
+                                    <Link to={`/blog/${adjacent.prev.slug}`} style={{ textDecoration: "none" }}>
+                                        <div style={{ background: "var(--bg-card)", border: "1px solid var(--border)", borderRadius: 12, padding: 20, transition: "all 0.2s" }}
+                                            onMouseEnter={e => e.currentTarget.style.borderColor = "rgba(74,143,212,0.4)"}
+                                            onMouseLeave={e => e.currentTarget.style.borderColor = "var(--border)"}>
+                                            <div style={{ fontSize: 11, color: "var(--text-faint)", marginBottom: 8, letterSpacing: "0.06em" }}>← PREVIOUS</div>
+                                            <div style={{ fontSize: 14, color: "var(--text)", fontWeight: 600, lineHeight: 1.4 }}>{adjacent.prev.title}</div>
+                                        </div>
+                                    </Link>
+                                ) : <div />}
+                                {adjacent.next ? (
+                                    <Link to={`/blog/${adjacent.next.slug}`} style={{ textDecoration: "none" }}>
+                                        <div style={{ background: "var(--bg-card)", border: "1px solid var(--border)", borderRadius: 12, padding: 20, textAlign: "right", transition: "all 0.2s" }}
+                                            onMouseEnter={e => e.currentTarget.style.borderColor = "rgba(74,143,212,0.4)"}
+                                            onMouseLeave={e => e.currentTarget.style.borderColor = "var(--border)"}>
+                                            <div style={{ fontSize: 11, color: "var(--text-faint)", marginBottom: 8, letterSpacing: "0.06em" }}>NEXT →</div>
+                                            <div style={{ fontSize: 14, color: "var(--text)", fontWeight: 600, lineHeight: 1.4 }}>{adjacent.next.title}</div>
+                                        </div>
+                                    </Link>
+                                ) : <div />}
+                            </div>
+                        </article>
+                    </>
+                )}
             </div>
             <Footer />
         </>
