@@ -3,6 +3,7 @@ const API_BASE = import.meta.env.VITE_API_URL || "https://dftlabs-backend.onrend
 function formatEvent(e) {
     return {
         id: e.slug,
+        numericId: e.id,
         slug: e.slug,
         title: e.title,
         date: e.date || "",         // backend field: date (string like "Mar 22, 2026")
@@ -34,11 +35,20 @@ export async function fetchEventBySlug(slug) {
     return formatEvent(await res.json());
 }
 
-export async function registerForEvent(slug, formData) {
+export async function registerForEvent(eventId, formData) {
     const res = await fetch(`${API_BASE}/api/registrations/`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ event_slug: slug, ...formData }),
+        body: JSON.stringify({
+            event_id: eventId,
+            first_name: formData.first_name,
+            last_name: formData.last_name,
+            email: formData.email,
+            phone: formData.phone || null,
+            organization: formData.organization || null,
+            role: formData.attendee_role || null,   // backend field is "role"
+            is_virtual: formData.virtual || false,
+        }),
     });
     if (!res.ok) {
         const err = await res.json().catch(() => ({}));

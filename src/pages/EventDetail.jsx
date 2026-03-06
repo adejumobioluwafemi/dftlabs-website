@@ -39,7 +39,7 @@ function renderDescription(text) {
 function RegistrationForm({ event, onSuccess }) {
     const [form, setForm] = useState({
         first_name: "", last_name: "", email: "",
-        phone: "", organization: "", attendee_role: "", virtual: false,
+        phone: "", organization: "", role: "", virtual: false,
     });
     const [errors, setErrors] = useState({});
     const [submitting, setSubmitting] = useState(false);
@@ -60,7 +60,7 @@ function RegistrationForm({ event, onSuccess }) {
         setSubmitting(true);
         setApiError(null);
         try {
-            await registerForEvent(event.slug, {
+            await registerForEvent(event.numericId, {
                 first_name: form.first_name,
                 last_name: form.last_name,
                 email: form.email,
@@ -177,7 +177,7 @@ function LoadingSkeleton() {
 }
 
 export default function EventDetail() {
-    const { id } = useParams(); // id = slug
+    const { id: slug } = useParams(); // id = slug
     const [event, setEvent] = useState(null);
     const [loading, setLoading] = useState(true);
     const [notFound, setNotFound] = useState(false);
@@ -186,7 +186,7 @@ export default function EventDetail() {
 
     useEffect(() => {
         let cancelled = false;
-        fetchEventBySlug(id)
+        fetchEventBySlug(slug)
             .then(data => {
                 if (cancelled) return;
                 if (!data) setNotFound(true);
@@ -195,7 +195,7 @@ export default function EventDetail() {
             .catch(() => { if (!cancelled) setNotFound(true); })
             .finally(() => { if (!cancelled) setLoading(false); });
         return () => { cancelled = true; };
-    }, [id]);
+    }, [slug]);
 
     if (notFound) {
         return (
