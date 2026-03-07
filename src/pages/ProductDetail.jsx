@@ -132,7 +132,7 @@ export default function ProductDetail() {
                 borderBottom: "1px solid var(--border)",
                 padding: "52px 24px 44px",
             }}>
-                <div style={{ maxWidth: 900, margin: "0 auto" }}>
+                <div style={{ maxWidth: 1000, margin: "0 auto" }}>
                     {/* Breadcrumb */}
                     <div style={{ display: "flex", gap: 8, alignItems: "center", marginBottom: 24, fontSize: 13, color: "var(--text-faint)" }}>
                         <Link to="/" style={{ color: "var(--text-faint)", textDecoration: "none" }}

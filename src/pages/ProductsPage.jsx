@@ -2,7 +2,7 @@
 // Public products listing — fetches from API, falls back to static data
 // Cards link to /products/:slug for full detail page
 import { useState, useEffect } from "react";
-import { useNavigate } from "react-router-dom";
+import { useNavigate, Link } from "react-router-dom";
 import { APPS } from "../data/content";
 
 const API_BASE = import.meta.env.VITE_API_URL || "https://dftlabs-backend.onrender.com";
@@ -192,7 +192,20 @@ export default function ProductsPage() {
                 borderBottom: "1px solid var(--border)",
                 padding: "60px 24px 48px", textAlign: "center",
             }}>
-                <div style={{ maxWidth: 700, margin: "0 auto" }}>
+                <div style={{ maxWidth: 1000, margin: "0 auto" }}>
+                    <div style={{ display: "flex", gap: 8, alignItems: "center", marginBottom: 24, fontSize: 13, color: "var(--text-faint)" }}>
+                        <Link to="/" style={{ color: "var(--text-faint)", textDecoration: "none" }}
+                            onMouseEnter={e => e.target.style.color = "var(--blue)"}
+                            onMouseLeave={e => e.target.style.color = "var(--text-faint)"}>
+                            Home
+                        </Link>
+                        <span>/</span>
+                        <Link to="/products" style={{ color: "var(--text-faint)", textDecoration: "none" }}
+                            onMouseEnter={e => e.target.style.color = "var(--blue)"}
+                            onMouseLeave={e => e.target.style.color = "var(--text-faint)"}>
+                            Products
+                        </Link>
+                    </div>
                     <div style={{ fontSize: 11, fontWeight: 700, color: "var(--blue)", letterSpacing: "0.2em", textTransform: "uppercase", marginBottom: 14 }}>Our Products</div>
                     <h1 style={{ fontSize: "clamp(30px, 5vw, 52px)", fontWeight: 800, fontFamily: "var(--font-display)", color: "var(--text)", marginBottom: 16, lineHeight: 1.1 }}>
                         Apps &{" "}
