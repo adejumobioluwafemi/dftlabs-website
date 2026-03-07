@@ -1,3 +1,4 @@
+// src/components/Footer.jsx
 import Logo from "./ui/Logo";
 
 const SwanLogo = ({ size = 32, color = "#4A8FD4" }) => (

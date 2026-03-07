@@ -1,26 +1,15 @@
+// src/components/Navbar.jsx
 import { useState, useEffect } from "react";
-import { useNavigate } from "react-router-dom";
+import { useNavigate, useLocation } from "react-router-dom";
 import { NAV_LINKS } from "../data/content";
 import Logo from "./ui/Logo";
-
-
-const SwanLogo = ({ size = 38, color = "#4A8FD4" }) => (
-    <svg width={size} height={size * 0.75} viewBox="0 0 120 90" fill="none">
-        <path d="M85 15 C75 5 60 8 45 11 C32 14 38 35 40 35 C42 48 55 52 55 52" stroke={color} strokeWidth="2.5" strokeLinecap="round" fill="none" />
-        <path d="M55 52 C35 50 20 60 10 72 C5 78 10 87 25 85 C45 82 70 78 85 68 C100 58 108 44 100 30 C94 20 85 15 85 15" stroke={color} strokeWidth="2.5" strokeLinecap="round" fill="none" />
-        <path d="M57 54 L91 49" stroke={color} strokeWidth="2" strokeLinecap="round" />
-        <path d="M52 63 L89 59" stroke={color} strokeWidth="2" strokeLinecap="round" />
-        <path d="M49 73 L83 71" stroke={color} strokeWidth="2" strokeLinecap="round" />
-        <circle cx="94" cy="48" r="3" fill={color} />
-        <circle cx="92" cy="58" r="3" fill={color} />
-        <circle cx="86" cy="70" r="3" fill={color} />
-    </svg>
-);
 
 export default function Navbar() {
     const [scrolled, setScrolled] = useState(false);
     const [mobileOpen, setMobileOpen] = useState(false);
     const navigate = useNavigate();
+    const location = useLocation();
+    const isHome = location.pathname === "/";
 
     useEffect(() => {
         const onScroll = () => setScrolled(window.scrollY > 50);
@@ -28,10 +17,42 @@ export default function Navbar() {
         return () => window.removeEventListener("scroll", onScroll);
     }, []);
 
+    // Handle scroll-after-navigate (when coming back to home from another page)
+    useEffect(() => {
+        if (isHome && location.state?.scrollTo) {
+            const id = location.state.scrollTo;
+            // Small delay to let the page render
+            setTimeout(() => {
+                const el = document.getElementById(id);
+                if (el) el.scrollIntoView({ behavior: "smooth" });
+            }, 100);
+            // Clear the state so it doesn't re-scroll on re-renders
+            navigate("/", { replace: true, state: {} });
+        }
+    }, [isHome, location.state]);
+
+    const handleLogoClick = () => {
+        if (isHome) {
+            window.scrollTo({ top: 0, behavior: "smooth" });
+        } else {
+            navigate("/");
+        }
+    };
+
     const scrollTo = (label) => {
-        const pageRoutes = { About: "/about", Blog: "/blog", Events: "/events", Jobs: "/jobs" };
+        const pageRoutes = {
+            About: "/about",
+            Blog: "/blog",
+            Events: "/events",
+            Jobs: "/jobs",
+            //Courses: "/courses",
+            Products: "/products",
+        };
+
         if (pageRoutes[label]) {
             navigate(pageRoutes[label]);
+        } else if (!isHome) {
+            navigate("/", { state: { scrollTo: label.toLowerCase() } });
         } else {
             const el = document.getElementById(label.toLowerCase());
             if (el) el.scrollIntoView({ behavior: "smooth" });
@@ -60,10 +81,11 @@ export default function Navbar() {
                 display: "flex", alignItems: "center",
                 justifyContent: "space-between", height: 68,
             }}>
-                {/* Logo */}
+                {/* Logo — navigates home from any page */}
                 <div
-                    onClick={() => window.scrollTo({ top: 0, behavior: "smooth" })}
+                    onClick={handleLogoClick}
                     style={{ cursor: "pointer", display: "flex", alignItems: "center" }}
+                    title="Go to homepage"
                 >
                     <Logo height={85} />
                 </div>
@@ -81,8 +103,12 @@ export default function Navbar() {
                             {l}
                         </button>
                     ))}
+
                     <button
-                        onClick={() => scrollTo("Contact")}
+                        onClick={() => {
+                            if (!isHome) navigate("/", { state: { scrollTo: "contact" } });
+                            else document.getElementById("contact")?.scrollIntoView({ behavior: "smooth" });
+                        }}
                         style={{
                             marginLeft: 8,
                             background: "linear-gradient(135deg, #4A8FD4, #2d6ba8)",
@@ -135,7 +161,11 @@ export default function Navbar() {
                         </button>
                     ))}
                     <button
-                        onClick={() => scrollTo("Contact")}
+                        onClick={() => {
+                            if (!isHome) navigate("/", { state: { scrollTo: "contact" } });
+                            else document.getElementById("contact")?.scrollIntoView({ behavior: "smooth" });
+                            setMobileOpen(false);
+                        }}
                         style={{
                             marginTop: 16, width: "100%",
                             background: "linear-gradient(135deg, #4A8FD4, #2d6ba8)",

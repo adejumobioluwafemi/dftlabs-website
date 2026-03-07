@@ -13,50 +13,140 @@ const TAG_COLORS = {
     "Technical": "#8b5cf6",
 };
 
+// Replace your existing renderContent function in BlogPost.jsx with this one.
+// It adds support for:
+//   - Inline images:  ![alt text](https://url)
+//   - Links:          [link text](https://url)
+//   - Bold:           **text**
+//   - Italic:         *text*
+//   - Blockquotes:    > text
+//   - Code blocks:    ```code```
+
+function renderInline(text) {
+    // Bold + italic + links inline
+    const parts = [];
+    const regex = /(\*\*(.+?)\*\*|\*(.+?)\*|\[(.+?)\]\((https?:\/\/.+?)\))/g;
+    let last = 0;
+    let match;
+    while ((match = regex.exec(text)) !== null) {
+        if (match.index > last) parts.push(text.slice(last, match.index));
+        if (match[0].startsWith("**")) {
+            parts.push(<strong key={match.index} style={{ color: "var(--text)", fontWeight: 700 }}>{match[2]}</strong>);
+        } else if (match[0].startsWith("*")) {
+            parts.push(<em key={match.index}>{match[3]}</em>);
+        } else if (match[0].startsWith("[")) {
+            parts.push(<a key={match.index} href={match[5]} target="_blank" rel="noreferrer" style={{ color: "var(--blue)", textDecoration: "underline" }}>{match[4]}</a>);
+        }
+        last = match.index + match[0].length;
+    }
+    if (last < text.length) parts.push(text.slice(last));
+    return parts.length > 0 ? parts : text;
+}
+
 function renderContent(content) {
     if (!content) return null;
-    return content.split("\n\n").map((block, i) => {
-        if (block.startsWith("## ")) {
-            return (
-                <h2 key={i} style={{ fontSize: 22, fontWeight: 800, color: "var(--text)", fontFamily: "var(--font-display)", margin: "36px 0 16px" }}>
-                    {block.replace("## ", "")}
-                </h2>
-            );
+
+    // Handle fenced code blocks first (multi-line)
+    const codeBlockRegex = /```[\s\S]*?```/g;
+    const blocks = [];
+    let lastIndex = 0;
+    let cbMatch;
+
+    while ((cbMatch = codeBlockRegex.exec(content)) !== null) {
+        if (cbMatch.index > lastIndex) {
+            blocks.push({ type: "text", value: content.slice(lastIndex, cbMatch.index) });
         }
-        if (block.startsWith("### ")) {
-            return (
-                <h3 key={i} style={{ fontSize: 18, fontWeight: 700, color: "var(--text)", fontFamily: "var(--font-display)", margin: "28px 0 12px" }}>
-                    {block.replace("### ", "")}
-                </h3>
+        blocks.push({ type: "code", value: cbMatch[0].replace(/^```\w*\n?/, "").replace(/```$/, "") });
+        lastIndex = cbMatch.index + cbMatch[0].length;
+    }
+    if (lastIndex < content.length) {
+        blocks.push({ type: "text", value: content.slice(lastIndex) });
+    }
+
+    const elements = [];
+    let key = 0;
+
+    for (const block of blocks) {
+        if (block.type === "code") {
+            elements.push(
+                <pre key={key++} style={{ background: "rgba(255,255,255,0.04)", border: "1px solid var(--border)", borderRadius: 10, padding: "16px 20px", overflowX: "auto", margin: "20px 0" }}>
+                    <code style={{ fontSize: 13, color: "#7CB9E8", fontFamily: "monospace", lineHeight: 1.7 }}>{block.value.trim()}</code>
+                </pre>
             );
+            continue;
         }
-        if (block.startsWith("1. ") || block.startsWith("2. ") || block.startsWith("- ")) {
-            const items = block.split("\n").filter(Boolean);
-            const isOrdered = /^\d+\./.test(items[0]);
-            const Tag = isOrdered ? "ol" : "ul";
-            return (
-                <Tag key={i} style={{ paddingLeft: 24, margin: "16px 0" }}>
-                    {items.map((item, j) => (
-                        <li key={j} style={{ fontSize: 16, color: "var(--text-muted)", lineHeight: 1.9, marginBottom: 8 }}>
-                            {item.replace(/^(\d+\.|-)?\s*/, "")}
-                        </li>
-                    ))}
-                </Tag>
-            );
-        }
-        if (block.startsWith("**") && block.endsWith("**")) {
-            return (
-                <p key={i} style={{ fontSize: 16, color: "var(--text)", fontWeight: 700, lineHeight: 1.9, marginBottom: 20 }}>
-                    {block.replace(/\*\*/g, "")}
+
+        // Process text blocks paragraph by paragraph
+        const paragraphs = block.value.split("\n\n");
+        for (const para of paragraphs) {
+            const trimmed = para.trim();
+            if (!trimmed) continue;
+
+            // Inline image: ![alt](url)
+            if (/^!\[.*?\]\(https?:\/\/.+?\)$/.test(trimmed)) {
+                const altMatch = trimmed.match(/^!\[(.*?)\]/);
+                const urlMatch = trimmed.match(/\((https?:\/\/.+?)\)$/);
+                if (urlMatch) {
+                    elements.push(
+                        <figure key={key++} style={{ margin: "28px 0" }}>
+                            <img
+                                src={urlMatch[1]}
+                                alt={altMatch?.[1] || ""}
+                                style={{ width: "100%", borderRadius: 12, display: "block", border: "1px solid var(--border)" }}
+                            />
+                            {altMatch?.[1] && altMatch[1] !== "image" && (
+                                <figcaption style={{ fontSize: 13, color: "var(--text-faint)", textAlign: "center", marginTop: 8 }}>{altMatch[1]}</figcaption>
+                            )}
+                        </figure>
+                    );
+                    continue;
+                }
+            }
+
+            if (trimmed.startsWith("## ")) {
+                elements.push(<h2 key={key++} style={{ fontSize: 22, fontWeight: 800, color: "var(--text)", fontFamily: "var(--font-display)", margin: "36px 0 16px" }}>{trimmed.replace("## ", "")}</h2>);
+                continue;
+            }
+            if (trimmed.startsWith("### ")) {
+                elements.push(<h3 key={key++} style={{ fontSize: 18, fontWeight: 700, color: "var(--text)", fontFamily: "var(--font-display)", margin: "28px 0 12px" }}>{trimmed.replace("### ", "")}</h3>);
+                continue;
+            }
+            if (trimmed.startsWith("> ")) {
+                elements.push(
+                    <blockquote key={key++} style={{ borderLeft: "3px solid var(--blue)", paddingLeft: 20, margin: "20px 0", color: "var(--text-muted)", fontStyle: "italic" }}>
+                        {renderInline(trimmed.replace(/^> /gm, ""))}
+                    </blockquote>
+                );
+                continue;
+            }
+            if (trimmed.startsWith("- ") || /^\d+\.\s/.test(trimmed)) {
+                const items = trimmed.split("\n").filter(Boolean);
+                const isOrdered = /^\d+\./.test(items[0]);
+                const ListTag = isOrdered ? "ol" : "ul";
+                elements.push(
+                    <ListTag key={key++} style={{ paddingLeft: 24, margin: "16px 0" }}>
+                        {items.map((item, j) => (
+                            <li key={j} style={{ fontSize: 16, color: "var(--text-muted)", lineHeight: 1.9, marginBottom: 8 }}>
+                                {renderInline(item.replace(/^(\d+\.|-)\s*/, ""))}
+                            </li>
+                        ))}
+                    </ListTag>
+                );
+                continue;
+            }
+            if (trimmed.startsWith("**") && trimmed.endsWith("**") && !trimmed.slice(2, -2).includes("**")) {
+                elements.push(<p key={key++} style={{ fontSize: 16, color: "var(--text)", fontWeight: 700, lineHeight: 1.9, marginBottom: 20 }}>{trimmed.replace(/\*\*/g, "")}</p>);
+                continue;
+            }
+            elements.push(
+                <p key={key++} style={{ fontSize: 16, color: "var(--text-muted)", lineHeight: 1.9, marginBottom: 20 }}>
+                    {renderInline(trimmed)}
                 </p>
             );
         }
-        return (
-            <p key={i} style={{ fontSize: 16, color: "var(--text-muted)", lineHeight: 1.9, marginBottom: 20 }}>
-                {block}
-            </p>
-        );
-    });
+    }
+
+    return elements;
 }
 
 function LoadingSkeleton() {

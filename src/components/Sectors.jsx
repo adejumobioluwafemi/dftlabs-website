@@ -1,3 +1,4 @@
+// src/components/Sectors.jsx
 import { useState } from "react";
 import { SECTORS } from "../data/content";
 import SectionHeader from "./ui/SectionHeader";

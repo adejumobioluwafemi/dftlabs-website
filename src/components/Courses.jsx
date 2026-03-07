@@ -1,3 +1,4 @@
+// src/components/Courses.jsx
 import { COURSES } from "../data/content";
 import SectionHeader from "./ui/SectionHeader";
 import Tag from "./ui/Tag";

@@ -1,3 +1,5 @@
+
+// src/components/Hero.jsx
 import { STATS } from "../data/content";
 
 export default function Hero() {
@@ -65,7 +67,7 @@ export default function Hero() {
                     color: "var(--text-muted)", lineHeight: 1.85,
                     maxWidth: 620, margin: "0 auto 40px", fontWeight: 300,
                 }}>
-                    DeepFly Tech Labs builds production-grade AI and automation solutions for{" "}
+                    DeepFly Tech Labs builds safe, production-grade AI and automation solutions for{" "}
                     <strong style={{ color: "var(--text)", fontWeight: 600 }}>
                         Healthcare, Agriculture, Banking, and Education
                     </strong>{" "}

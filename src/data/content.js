@@ -1,5 +1,5 @@
-
-export const NAV_LINKS = ["About", "Products", "Blog", "Courses", "Events", "Jobs", "Contact"];
+// src/data/content.js
+export const NAV_LINKS = ["About", "Products", "Blog", "Events", "Jobs", "Contact"]; // "Courses", 
 
 export const SECTORS = [
     {

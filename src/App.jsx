@@ -12,6 +12,9 @@ import NotFound from "./pages/NotFound";
 import AboutPage from "./pages/AboutPage";
 import EventsPage from "./pages/EventsPage";
 import EventDetail from "./pages/EventDetail";
+import CoursesPage from "./pages/CoursesPage";
+import ProductsPage from "./pages/ProductsPage";
+import ProductDetail from "./pages/ProductDetail";
 
 // Admin
 import AdminLayout from "./pages/admin/AdminLayout";
@@ -19,6 +22,7 @@ import AdminDashboard from "./pages/admin/AdminDashboard";
 import AdminBlog from "./pages/admin/AdminBlog";
 import AdminJobs from "./pages/admin/AdminJobs";
 import AdminEvents from "./pages/admin/AdminEvents";
+import AdminProducts from "./pages/admin/AdminProducts";
 
 // Shared layout components
 import Navbar from "./components/Navbar";
@@ -75,6 +79,9 @@ export default function App() {
           <Route path="/about" element={<AboutPage />} />
           <Route path="/events" element={<EventsPage />} />
           <Route path="/events/:id" element={<EventDetail />} />
+          <Route path="/courses" element={<CoursesPage />} />
+          <Route path="/products" element={<ProductsPage />} />
+          <Route path="/products/:slug" element={<ProductDetail />} />
 
           {/* Admin routes — protected inside AdminLayout */}
           <Route path="/admin" element={<AdminLayout />}>
@@ -82,6 +89,7 @@ export default function App() {
             <Route path="blog" element={<AdminBlog />} />
             <Route path="jobs" element={<AdminJobs />} />
             <Route path="events" element={<AdminEvents />} />
+            <Route path="products" element={<AdminProducts />} />
           </Route>
 
           {/* 404 */}
